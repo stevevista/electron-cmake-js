@@ -69,7 +69,7 @@ endfunction()
 
 
 function(add_node_module NAME)
-    cmake_parse_arguments("" "" "ADDON_VERSION;NAN_VERSION;DISABLE_EXCEPTIONS;CACHE_DIR;SUFFIX;RUNTIME;ELECTRON_VERSION" "NODE_ABIS" ${ARGN})
+    cmake_parse_arguments("" "" "ADDON_VERSION;NAN_VERSION;DISABLE_EXCEPTIONS;CACHE_DIR;SUFFIX;RUNTIME;ELECTRON_VERSION;COPY_OUTPUT_PATH" "NODE_ABIS" ${ARGN})
     if (_RUNTIME STREQUAL "electron")
         set(_NODE_DIST_URL "https://www.electronjs.org/headers")
         set(_NODE_LIB_DIST_URL "https://www.electronjs.org/headers")
@@ -90,6 +90,12 @@ function(add_node_module NAME)
         else()
             set(_SUFFIX ".so")
         endif()
+    endif()
+
+    if (_COPY_OUTPUT_PATH STREQUAL "NO")
+    set(_COPY_OUTPUT_PATH "")
+    elseif (NOT _COPY_OUTPUT_PATH)
+        set(_COPY_OUTPUT_PATH "${ELECTRON_APP_ROOT_PATH}")
     endif()
 
     if(NOT _NODE_ABIS)
@@ -217,6 +223,7 @@ function(add_node_module NAME)
         if (WIN32)
             target_compile_definitions(${_TARGET} PRIVATE
                 "WIN32"
+                "_WINDOWS"
                 "_CRT_SECURE_NO_DEPRECATE"
                 "_CRT_NONSTDC_NO_DEPRECATE"
             )
@@ -271,6 +278,18 @@ function(add_node_module NAME)
                     LINK_FLAGS "-z now"
                 )
             endif()
+        endif()
+
+        # copy target to destination
+        if (_COPY_OUTPUT_PATH)
+            add_custom_target("CopyFiles_${_TARGET}" ALL 
+                VERBATIM 
+                COMMAND_EXPAND_LISTS 
+                COMMAND ${CMAKE_COMMAND} -E 
+                copy_if_different
+                            $<TARGET_FILE:${_TARGET}>
+                            "${_COPY_OUTPUT_PATH}"
+            )
         endif()
     endforeach()
 

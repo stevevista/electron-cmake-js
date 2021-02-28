@@ -3,6 +3,22 @@
 * [cmake-node-module] (https://github.com/mapbox/cmake-node-module/tree/master)
 
 # Usage
+* CMakeLists.txt
+```cmake
+include("${ELECTRON_CMAKE_SUBMODULE_PATH}")
+add_node_module(some_mod 
+  CACHE_DIR "${ELECTRON_APP_ROOT_PATH}/node_cache"
+  RUNTIME "electron"
+  ELECTRON_VERSION ${ELECTRON_VERSION}
+  NODE_ABIS ${NODE_ABI})
+target_sources(some_mod INTERFACE
+    ...
+)
+
+# electron-cmake-js configure -d <dir contains CMakeLists.txt>
+# electron-cmake-js build -d <dir contains CMakeLists.txt>
+```
+
 * webpack config
 ```js
 
@@ -13,23 +29,14 @@ webpackConfig = {
   },
 
   externals: {
-    'some_mod': 'commonjs2 some_mod.addon',
     bindings: '__injectedBindings__'
   }
 }
 
 ```
 
-* package.json
-```json
-"scripts": {
-  "build_mod": "electron-cmake-js build -d src_some_mod"
-}
-
-```
-
 * js
 ```js
-import mod from 'some_mod'
+import mod from 'some_mod.addon'
 
 ```
